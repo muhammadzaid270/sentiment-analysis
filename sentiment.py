@@ -51,7 +51,7 @@ def predict_sentiment(model, vectorizer, review):
     prediction = model.predict(review_vector)[0]
     return "positive" if prediction == 1 else "negative"
 
-# Step 5: Create a GUI using tkinter with enhanced resolution and style
+# Step 5: Create a GUI using tkinter
 def run_sentiment_gui():
     # Load the trained model and vectorizer
     model, vectorizer = load_model_and_vectorizer()
@@ -71,7 +71,7 @@ def run_sentiment_gui():
     # Set up the tkinter window
     window = tk.Tk()
     window.title("Sentiment Analysis")
-    window.geometry("600x400")  # Increased resolution
+    window.geometry("600x400")  # Resolution
     window.configure(bg="#f0f0f5")  # Light grey background
 
     # Add a title label
@@ -128,7 +128,7 @@ def run_sentiment_gui():
 # Main function to run the program
 if __name__ == "__main__":
     # Provide the correct path to the dataset
-    dataset_path = 'C:/path_to_your_dataset/imdb.csv'  # Update this path
+    dataset_path = 'imdb.csv'
     X, y = load_and_preprocess_data(dataset_path)
     train_and_save_model(X, y)  # This will not print anything in the terminal
 
