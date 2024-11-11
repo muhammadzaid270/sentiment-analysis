@@ -2,80 +2,85 @@ import pandas as pd
 import pickle
 import re
 import streamlit as st
-from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 
-# Step 1: Load and preprocess the dataset
-def load_and_preprocess_data(file_path):
-    df = pd.read_csv(file_path)
-    df['review'] = df['review'].str.replace(r'[^a-zA-Z\s]', '', regex=True)  # Remove non-alphabetic characters
-    df['review'] = df['review'].str.lower()  # Convert to lowercase
-    X = df['review']
-    y = df['sentiment'].apply(lambda x: 1 if x == 'positive' else 0)  # Convert labels to 0 (negative) and 1 (positive)
-    return X, y
-
-# Step 2: Train the model and save it (this will not print anything)
-def train_and_save_model(X, y):
-    vectorizer = TfidfVectorizer(max_features=5000)
-    X_transformed = vectorizer.fit_transform(X)
-
-    X_train, X_test, y_train, y_test = train_test_split(X_transformed, y, test_size=0.2, random_state=42)
-
-    model = LogisticRegression()
-    model.fit(X_train, y_train)
-
-    with open('sentiment_model.pkl', 'wb') as model_file:
-        pickle.dump(model, model_file)
-    with open('tfidf_vectorizer.pkl', 'wb') as vec_file:
-        pickle.dump(vectorizer, vec_file)
-
-# Step 3: Load the model and vectorizer for prediction
+# Step 1: Load the pre-trained model and vectorizer
+@st.cache_resource
 def load_model_and_vectorizer():
+    """Load the trained model and vectorizer from disk."""
     with open('sentiment_model.pkl', 'rb') as model_file:
         model = pickle.load(model_file)
     with open('tfidf_vectorizer.pkl', 'rb') as vec_file:
         vectorizer = pickle.load(vec_file)
     return model, vectorizer
 
-# Step 4: Preprocess user input and make predictions
+# Step 2: Preprocess user input
 def preprocess_input(text):
+    """Clean and preprocess the input text."""
     text = re.sub(r'[^a-zA-Z\s]', '', text)
     text = text.lower()
     return text
 
+# Step 3: Predict sentiment
 def predict_sentiment(model, vectorizer, review):
+    """Predict whether the sentiment is positive or negative."""
     review = preprocess_input(review)
     review_vector = vectorizer.transform([review])
     prediction = model.predict(review_vector)[0]
-    return "positive" if prediction == 1 else "negative"
+    return "Positive 😊" if prediction == 1 else "Negative 😢"
 
-# Step 5: Create the Streamlit interface
+# Step 4: Create the Streamlit interface
 def run_sentiment_app():
+    st.set_page_config(page_title="Sentiment Analysis Tool", layout="centered")
+    
     # Load the trained model and vectorizer
     model, vectorizer = load_model_and_vectorizer()
 
     # Set up Streamlit title and instructions
-    st.title("Sentiment Analysis Tool")
-    st.write("Enter a movie review to analyze the sentiment.")
+    st.title("🎬 Movie Review Sentiment Analyzer")
+    st.markdown("""
+    **Analyze the sentiment of a movie review.**  
+    Type a review, and the model will classify it as positive or negative.
+    """)
+    
+    # Placeholder example
+    review = st.text_input(
+        "Enter a movie review:",
+        placeholder="Write a review like: 'This movie was fantastic, I loved it!'"
+    )
 
-    # Get user input (text review)
-    review = st.text_input("Movie Review:")
+    # State variable to control analysis
+    if "analyzed" not in st.session_state:
+        st.session_state.analyzed = False
+
+    # Function to perform analysis
+    def analyze_review():
+        if review.strip():
+            with st.spinner("Analyzing... Please wait."):
+                sentiment = predict_sentiment(model, vectorizer, review)
+                st.session_state.sentiment = sentiment
+                st.session_state.analyzed = True
+
+    # Automatically analyze on Enter
+    if review and not st.session_state.analyzed:
+        analyze_review()
 
     # Button to analyze sentiment
-    if st.button('Analyze'):
-        if review.strip() == "":
-            st.warning("Please enter a review.")
-        else:
-            sentiment = predict_sentiment(model, vectorizer, review)
-            st.subheader(f"Sentiment: {sentiment}")
-            st.write(f"The review is classified as: **{sentiment}**")
+    if st.button('Analyze Sentiment'):
+        analyze_review()
+
+    # Display results if analyzed
+    if st.session_state.analyzed:
+        sentiment = st.session_state.sentiment
+        st.subheader(f"Sentiment: {sentiment}")
+        st.success(f"The review is classified as: **{sentiment}**")
+        st.session_state.analyzed = False
+
+    # Footer with extra info
+    st.markdown("---")
+    st.write("🔍 **Tip**: Try writing reviews like 'The acting was terrible' or 'Amazing storyline!'")
 
 # Main function to run the Streamlit app
 if __name__ == "__main__":
-    dataset_path = 'imdb.csv'  # Ensure you upload this dataset along with the app
-    X, y = load_and_preprocess_data(dataset_path)
-    train_and_save_model(X, y)  # Run this once to generate the model files
-
-    # Run the Streamlit app
     run_sentiment_app()
