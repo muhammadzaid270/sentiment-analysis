@@ -49,16 +49,33 @@ def run_sentiment_app():
         "Enter a movie review:",
         placeholder="Write a review like: 'This movie was fantastic, I loved it!'"
     )
-    
-    # Button to analyze sentiment
-    if st.button('Analyze Sentiment'):
-        if review.strip() == "":
-            st.warning("⚠️ Please enter a review.")
-        else:
+
+    # State variable to control analysis
+    if "analyzed" not in st.session_state:
+        st.session_state.analyzed = False
+
+    # Function to perform analysis
+    def analyze_review():
+        if review.strip():
             with st.spinner("Analyzing... Please wait."):
                 sentiment = predict_sentiment(model, vectorizer, review)
-                st.subheader(f"Sentiment: {sentiment}")
-                st.success(f"The review is classified as: **{sentiment}**")
+                st.session_state.sentiment = sentiment
+                st.session_state.analyzed = True
+
+    # Automatically analyze on Enter
+    if review and not st.session_state.analyzed:
+        analyze_review()
+
+    # Button to analyze sentiment
+    if st.button('Analyze Sentiment'):
+        analyze_review()
+
+    # Display results if analyzed
+    if st.session_state.analyzed:
+        sentiment = st.session_state.sentiment
+        st.subheader(f"Sentiment: {sentiment}")
+        st.success(f"The review is classified as: **{sentiment}**")
+        st.session_state.analyzed = False
 
     # Footer with extra info
     st.markdown("---")
