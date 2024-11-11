@@ -14,17 +14,17 @@ In the web app, you can enter a movie review into the text box and click "Analyz
 1. **Clone the Repository**:
    To use the model on your local machine, clone the repository using the following command:
    ```bash
-   git clone https://github.com/yourusername/sentiment-analysis.git
+   git clone https://github.com/muhammadzaid270/sentiment-analysis.git
 
 2. **Install Dependencies**: Navigate to the project folder and install the required libraries:
    ```bash
    cd sentiment-analysis
    pip install -r requirements.txt
 
-3. **Prepare the Dataset**: Download the IMDB dataset (`imdb.csv`) and place it in the project directory.
+3. **Prepare the Dataset**: Make sure the IMDB dataset (`imdb.csv`) is placed in the project directory.
 
 4. **Run the Model**: Once everything is set up, you can run the script:
    ```bash
-   python sentiment_analysis.py
+   python sentiment.py
 
 This will launch a **Tkinter** GUI that allows you to input movie reviews and analyze their sentiment.
